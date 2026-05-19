@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lista de Alunos</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, sans-serif;
+    }
+
+    body{
+      background:#f4f4f4;
+      padding:40px;
+      color:#222;
+    }
+
+    .container{
+      max-width:700px;
+      margin:auto;
+      background:white;
+      padding:30px;
+      border-radius:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1{
+      margin-bottom:20px;
+      text-align:center;
+    }
+
+    .form{
+      display:flex;
+      gap:10px;
+      margin-bottom:25px;
+    }
+
+    input{
+      flex:1;
+      padding:12px;
+      border:1px solid #ccc;
+      border-radius:8px;
+      font-size:16px;
+    }
+
+    button{
+      padding:12px 20px;
+      border:none;
+      border-radius:8px;
+      background:#111827;
+      color:white;
+      cursor:pointer;
+      font-weight:bold;
+      transition:0.2s;
+    }
+
+    button:hover{
+      opacity:0.9;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:10px;
+    }
+
+    thead{
+      background:#111827;
+      color:white;
+    }
+
+    th, td{
+      padding:14px;
+      text-align:left;
+    }
+
+    tbody tr:nth-child(odd){
+      background:#f3f4f6;
+    }
+
+    tbody tr:nth-child(even){
+      background:#ffffff;
+    }
+
+    .loading{
+      text-align:center;
+      margin-top:15px;
+      color:#666;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Lista de Alunos</h1>
+
+    <div class="form">
+      <input type="text" id="nomeAluno" placeholder="Digite o nome do aluno">
+      <button onclick="salvarAluno()">Salvar</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nome</th>
+        </tr>
+      </thead>
+
+      <tbody id="listaAlunos"></tbody>
+    </table>
+
+    <div class="loading" id="status"></div>
+  </div>
+
+  <script>
+
+    // ==========================
+    // COLE SUA URL DO APPS SCRIPT AQUI
+    // ==========================
+    const API_URL = "COLE_AQUI_SUA_URL_DO_APPS_SCRIPT";
+
+    async function carregarAlunos() {
+
+      const status = document.getElementById("status");
+      status.innerText = "Carregando alunos...";
+
+      try {
+
+        const resposta = await fetch(API_URL);
+        const alunos = await resposta.json();
+
+        alunos.sort((a,b)=>
+          a.nome.localeCompare(b.nome, 'pt-BR')
+        );
+
+        renderizarTabela(alunos);
+
+        status.innerText = "";
+
+      } catch(err){
+
+        console.error(err);
+        status.innerText = "Erro ao carregar alunos.";
+
+      }
+
+    }
+
+    function renderizarTabela(alunos){
+
+      const tbody = document.getElementById("listaAlunos");
+
+      tbody.innerHTML = "";
+
+      alunos.forEach((aluno, index)=>{
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${aluno.nome}</td>
+          </tr>
+        `;
+
+      });
+
+    }
+
+    async function salvarAluno(){
+
+      const input = document.getElementById("nomeAluno");
+      const nome = input.value.trim();
+
+      if(!nome){
+        alert("Digite um nome.");
+        return;
+      }
+
+      try{
+
+        const resposta = await fetch(API_URL, {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            nome:nome
+          })
+        });
+
+        const resultado = await resposta.json();
+
+        if(resultado.success){
+
+          input.value = "";
+          carregarAlunos();
+
+        }else{
+
+          alert("Erro ao salvar.");
+
+        }
+
+      }catch(err){
+
+        console.error(err);
+        alert("Erro de conexão.");
+
+      }
+
+    }
+
+    carregarAlunos();
+
+  </script>
+
+</body>
+</html>
